@@ -116,7 +116,6 @@ export default class Carousel extends Component {
         this._activeItem = initialActiveItem;
         this._previousActiveItem = initialActiveItem;
         this._previousFirstItem = initialActiveItem;
-        this._previousItemsLength = initialActiveItem;
 
         this._mounted = false;
         this._positions = [];
@@ -222,6 +221,9 @@ export default class Carousel extends Component {
 
         const nextFirstItem = this._getFirstItem(firstItem, this.props);
         let nextActiveItem = this._activeItem || this._activeItem === 0 ? this._activeItem : nextFirstItem;
+        if (interpolators.length > itemsLength) {
+        	nextActiveItem = nextFirstItem;
+		}
 
         const hasNewSliderWidth = sliderWidth && sliderWidth !== prevProps.sliderWidth;
         const hasNewSliderHeight = sliderHeight && sliderHeight !== prevProps.sliderHeight;
@@ -242,14 +244,13 @@ export default class Carousel extends Component {
         if (interpolators.length !== itemsLength || hasNewSliderWidth ||
             hasNewSliderHeight || hasNewItemWidth || hasNewItemHeight) {
             this._activeItem = nextActiveItem;
-            this._previousItemsLength = itemsLength;
 
             this._initPositionsAndInterpolators(this.props);
 
             // Handle scroll issue when dynamically removing items (see #133)
             // This also fixes first item's active state on Android
             // Because 'initialScrollIndex' apparently doesn't trigger scroll
-            if (this._previousItemsLength > itemsLength) {
+            if (interpolators.length > itemsLength) {
                 this._hackActiveSlideAnimation(nextActiveItem, null, true);
             }
 
@@ -885,6 +886,7 @@ export default class Carousel extends Component {
     _onScrollEndDrag (event) {
         const { onScrollEndDrag } = this.props;
 
+        this._currentContentOffset = event ? this._getScrollOffset(event) : this._currentContentOffset;
         if (this._carouselRef) {
             this._onScrollEnd && this._onScrollEnd();
         }
